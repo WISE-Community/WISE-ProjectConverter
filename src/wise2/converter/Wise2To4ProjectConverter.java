@@ -450,11 +450,17 @@ public class Wise2To4ProjectConverter {
 			converter = new OutsideUrlConverter();
 		} else if(stepType.equals("Table")) {
 			converter = new TableConverter();
+		} else if(stepType.equals("Brainstorm")) {
+			converter = new DiscussionConverter();
 		}
 		
 		if(converter != null) {
-			projectStepNode = converter.createStep(stepNode, projectFolder, stepCounter);
-			stepCounter++;
+			try {
+				projectStepNode = converter.createStep(stepNode, projectFolder, stepCounter);
+				stepCounter++;				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		if(projectStepNode != null) {

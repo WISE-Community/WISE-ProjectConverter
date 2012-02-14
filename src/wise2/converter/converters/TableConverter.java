@@ -38,7 +38,7 @@ public class TableConverter extends Converter {
 	 * Determines the icon type for the step
 	 */
 	protected String getClassType() {
-		return "display";
+		return "table";
 	}
 
 	/**
