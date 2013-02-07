@@ -207,6 +207,12 @@ abstract class AssessmentConverter extends Converter {
 		//get the prompt
 		String prompt = getPrompt(itemBodyChild);
 		
+		/*
+		 * download all the images and change all the references to point
+		 * to the image in the assets folder
+		 */
+		prompt = downloadImagesAndReplaceReferences(getProjectFolder(), prompt);
+		
 		try {
 			//set the attributes into our interaction JSONObject
 			interaction.put("expectedLines", expectedLines);
@@ -244,6 +250,12 @@ abstract class AssessmentConverter extends Converter {
 		
 		//get the prompt
 		String prompt = getPrompt(itemBodyChild);
+		
+		/*
+		 * download all the images and change all the references to point
+		 * to the image in the assets folder
+		 */
+		prompt = downloadImagesAndReplaceReferences(getProjectFolder(), prompt);
 		
 		//get the choices
 		JSONArray choices = getChoices(itemBodyChild);

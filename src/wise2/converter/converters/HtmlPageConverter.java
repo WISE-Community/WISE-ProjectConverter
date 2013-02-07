@@ -73,6 +73,12 @@ abstract class HtmlPageConverter extends Converter {
 		
 		//get the html from the xml node
 		String html = stepNode.selectSingleNode(getHtmlTextXMLPath()).getText();
+
+		/*
+		 * download all the images and change all the references to point
+		 * to the image in the assets folder
+		 */
+		html = downloadImagesAndReplaceReferences(projectFolder, html);
 		
 		try {
 			//write the html contents to the actual file

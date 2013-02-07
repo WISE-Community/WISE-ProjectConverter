@@ -77,6 +77,9 @@ public class Wise2To4ProjectConverter {
 	//a counter that keeps count of the number of steps that we failed to convert
 	private int numberOfStepsFailedToConvert = 0;
 	
+	//will contain the output text when copying images for a step
+	private StringBuffer copyImageFileStringBuffer = new StringBuffer();
+	
 	/**
 	 * Converts the wise 2 project zip file into a wise 4 project folder
 	 * @param selectedFile
@@ -201,6 +204,8 @@ public class Wise2To4ProjectConverter {
 			e.printStackTrace();
 		}
 		
+		//output the details of copying image files and saving them to the assets folder
+		writeToConvertLog(copyImageFileStringBuffer.toString());
 		
 		writeToConvertLog("====================\n");
 		
@@ -456,6 +461,18 @@ public class Wise2To4ProjectConverter {
 		
 		if(converter != null) {
 			try {
+				/*
+				 * set the project folder into the converter so that
+				 * it can save image files into the assets folder
+				 */
+				converter.setProjectFolder(projectFolder);
+				
+				/*
+				 * set this string buffer to record the details of copying
+				 * image files into the assets folder
+				 */
+				converter.setCopyImageFileStringBuffer(copyImageFileStringBuffer);
+				
 				projectStepNode = converter.createStep(stepNode, projectFolder, stepCounter);
 				stepCounter++;				
 			} catch(Exception e) {

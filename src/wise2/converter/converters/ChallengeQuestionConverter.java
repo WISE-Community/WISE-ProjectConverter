@@ -86,6 +86,12 @@ public class ChallengeQuestionConverter extends AssessmentConverter {
 		//get the prompt
 		String prompt = getPrompt(itemBodyChild);
 		
+		/*
+		 * download all the images and change all the references to point
+		 * to the image in the assets folder
+		 */
+		prompt = downloadImagesAndReplaceReferences(getProjectFolder(), prompt);
+		
 		JSONArray choices = getChoices(itemBodyChild);
 		
 		try {

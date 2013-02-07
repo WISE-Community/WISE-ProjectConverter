@@ -4,9 +4,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.json.JSONArray;
@@ -18,6 +23,12 @@ import org.json.JSONObject;
  * @author geoffreykwan
  */
 public abstract class Converter {
+	
+	//the project folder that the wise 4 project files will be created in
+	private File projectFolder = null;
+	
+	//will contain the output text when copying images for a step
+	private StringBuffer copyImageFileStringBuffer = null;
 	
 	/**
 	 * Create the step object that we will put into the "nodes" JSONArray within
@@ -195,6 +206,131 @@ public abstract class Converter {
 		}
 		
 		return elementsFound;
+	}
+	
+	/**
+	 * Download references to images on the wise2 server and save them
+	 * into the assets folder. Then change the reference in the content
+	 * to point to the assets folder instead of the wise2 server.
+	 * @param projectFolder the project folder
+	 * @param content the content for the step
+	 * @return
+	 */
+	public String downloadImagesAndReplaceReferences(File projectFolder, String content) {
+		
+		/*
+		 * Find all references to images on the wise2 server.
+		 * e.g.
+		 * http://wise.berkeley.edu/upload/32809/plantcell.jpg
+		 * 
+		 * This will match jpg, jpeg, gif, png, tiff, bmp files. 
+		 */
+		Pattern p = Pattern.compile("http://wise.berkeley.edu/upload/.+?/(.+?\\.([jJ][pP][gG]|[jJ][pP][eE][gG]|[gG][iI][fF]|[pP][nN][gG]|[tT][iI][fF][fF]|[bB][mM][pP]))");
+		Matcher m = p.matcher(content);
+		
+		//create the reference to the assets folder in the project folder
+		File assetsFolder = new File(projectFolder, "assets");
+		
+		//loop through all the matches 
+		while(m.find()) {
+			try {
+				//get the whole match e.g. http://wise.berkeley.edu/upload/32809/plantcell.jpg
+				String originalMatch = m.group(0);
+				
+				/*
+				 * replace the http with https in the url
+				 * 
+				 * before=http://wise.berkeley.edu/upload/32809/plantcell.jpg
+				 * after=https://wise.berkeley.edu/upload/32809/plantcell.jpg
+				 */
+				String modifiedMatch = originalMatch.replace("http", "https");
+				
+				/*
+				 * replace the host to point to wise2.berkeley.edu because
+				 * wise.berkeley.edu points to wise4
+				 * wise2.berkeley.edu points to wise2
+				 * the references in the step content still work because
+				 * we have set up a redirect from wise.berkeley.edu to 
+				 * wise2.berkeley.edu for images. unfortunately when we
+				 * try to retrieve the file from the url, it will not
+				 * perform the redirect so we must manually change the
+				 * host from wise.berkeley.edu to wise2.berkeley.edu
+				 * 
+				 * before=http://wise.berkeley.edu/upload/32809/plantcell.jpg
+				 * after=https://wise2.berkeley.edu/upload/32809/plantcell.jpg
+				 */
+				modifiedMatch = modifiedMatch.replace("wise.berkeley.edu", "wise2.berkeley.edu");
+				//System.out.println("urlString=" + modifiedMatch);
+				
+				//get the file name that we have captured
+				String fileName = m.group(1);
+				//System.out.println("fileName=" + fileName);
+				//System.out.println(fileName);
+				
+				//get the URL for the image
+				URL imageUrl = new URL(modifiedMatch);
+				
+
+				/*
+				 * make a reference to where we will save the image file which
+				 * will be in the project assets folder
+				 */
+				File fileLocation = new File(assetsFolder, fileName);
+				//System.out.println("fileLocation=" + fileLocation.getAbsolutePath());
+				
+				//copy the file from the URL and save it into the assets folder
+				FileUtils.copyURLToFile(imageUrl, fileLocation, 10000, 10000);
+				//System.out.println("copying: " + modifiedMatch + " to " + fileLocation.getAbsolutePath());
+				copyImageFileStringBuffer.append("copying: " + modifiedMatch + " to " + fileLocation.getAbsolutePath() + "\n");
+				
+				/*
+				 * replace all references in the content with a reference to the
+				 * assets folder image
+				 * 
+				 * before=http://wise.berkeley.edu/upload/32809/plantcell.jpg
+				 * after=assets/plantcell.jpg
+				 */
+				content = content.replaceAll(originalMatch, "assets/" + fileName);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+		return content;
+	}
+	
+	/**
+	 * Get the project folder
+	 * @return
+	 */
+	public File getProjectFolder() {
+		return projectFolder;
+	}
+
+	/**
+	 * Set the project folder
+	 * @param projectFolder
+	 */
+	public void setProjectFolder(File projectFolder) {
+		this.projectFolder = projectFolder;
+	}
+	
+	/**
+	 * Get the copy image file string buffer
+	 * @return
+	 */
+	public StringBuffer getCopyImageFileStringBuffer() {
+		return copyImageFileStringBuffer;
+	}
+
+	/**
+	 * Set the copy image file string buffer
+	 * @param copyFileStringBuffer
+	 */
+	public void setCopyImageFileStringBuffer(StringBuffer copyFileStringBuffer) {
+		this.copyImageFileStringBuffer = copyFileStringBuffer;
 	}
 	
 	/**
