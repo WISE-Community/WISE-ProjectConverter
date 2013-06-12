@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,6 +104,9 @@ public abstract class Converter {
 	public void createStepFile(Node stepNode, File projectFolder, int stepCounter) {
 		//the JSONObject that we will write into the step file
 		JSONObject stepJSON = parseStepNode(stepNode);
+		
+		//add the hints into the step JSON
+		setHints(stepJSON, stepNode);
 		
 		//get the step file name
 		String stepFileName = getStepFileName(stepCounter);
@@ -331,6 +335,54 @@ public abstract class Converter {
 	 */
 	public void setCopyImageFileStringBuffer(StringBuffer copyFileStringBuffer) {
 		this.copyImageFileStringBuffer = copyFileStringBuffer;
+	}
+	
+	/**
+	 * Set the hints into the step JSON if there are any
+	 * @param stepJSON the step JSON to set the hints into
+	 * @param stepNode the step node to get the hints from
+	 */
+	public void setHints(JSONObject stepJSON, Node stepNode) {
+		//get all the hint nodes
+		List<Node> hintNodes = stepNode.selectNodes("hint");
+		
+		Iterator<Node> hintIter = hintNodes.iterator();
+		
+		//check if there are any hints
+		if(hintIter.hasNext()) {
+			//make the hints object
+			JSONObject hints = new JSONObject();
+			
+			//make the hints array
+			JSONArray hintsArray = new JSONArray();
+			
+			//loop through all the hints
+			while(hintIter.hasNext()) {
+				//get a hint
+				Node hintNode = hintIter.next();
+				
+				//get the hint text
+				String hintText = hintNode.getText();
+
+				//put the hint text into the array
+				hintsArray.put(hintText);
+			}
+			
+			try {
+				//set the fields in the hints object
+				hints.put("hintsArray", hintsArray);
+				hints.put("forceShow", "never");
+				hints.put("isModal", false);
+				hints.put("isMustViewAllPartsBeforeClosing", false);
+				hints.put("hintTerm", "hint");
+				hints.put("hintTermPlural", "hints");
+				
+				//set the hints object into the step JSON
+				stepJSON.put("hints", hints);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**

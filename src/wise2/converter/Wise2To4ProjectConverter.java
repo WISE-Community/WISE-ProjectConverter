@@ -473,7 +473,9 @@ public class Wise2To4ProjectConverter {
 				 */
 				converter.setCopyImageFileStringBuffer(copyImageFileStringBuffer);
 				
+				//create the step JSON
 				projectStepNode = converter.createStep(stepNode, projectFolder, stepCounter);
+				
 				stepCounter++;				
 			} catch(Exception e) {
 				e.printStackTrace();

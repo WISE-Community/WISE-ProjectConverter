@@ -116,6 +116,9 @@ abstract class HtmlPageConverter extends Converter {
 			//set the attributes for the step JSONObject
 			stepJSON.put("src", stepHtmlFileName);
 			stepJSON.put("type", getType());
+			
+			//add the hints into the step JSON
+			setHints(stepJSON, stepNode);
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 		}
